@@ -1,0 +1,22 @@
+
+;def j (+ 1 2)
+
+;def k + 1 'j
+
+print (free $(lambda (a b c) (+ ((lambda (x y) (y) ) a c) b) ) 1 6 2)
+
+;print :k
+
+def '(u q j) $(+ j q)
+
+print (free 'u 2 $(+ 1 2))
+
+print (free $(lambda () (+ 1 1) ) '() )
+
+;print .k
+
+;print (+ k 1)
+
+;print ((lambda (a b) (+ a b)) k 1)
+
+exit

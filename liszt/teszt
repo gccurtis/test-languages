@@ -1,0 +1,36 @@
+;def x $(lambda (a b) ( multi_eval $(print a) $(print b) ) )
+
+def y $(lambda (a b) (a b) )
+
+def z $(lambda (a b) (+ a b) )
+
+def a $(lambda () (1) )
+
+def b (+ 1 a)
+
+def c b
+
+def d $(lambda (o) (+ o 1) ) 'b a
+
+;print test
+
+;(x .c 6)
+
+;print "Hello World!" :c
+
+;print split
+;print (y (at 0 d) :c)
+
+;multi_eval $(print hi) $(print bye)
+
+;sep u .d
+
+;loopx i u 0 $(print (concat .i 'b))
+
+;def r 'red 'blue 'green
+
+print (a)
+
+print (y (at 0 .d) a)
+
+exit
