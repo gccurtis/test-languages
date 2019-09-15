@@ -36,15 +36,6 @@ define o (cons o (quote i) )
 
 println "Again o:" o
 
-;fix
-form (| ~x) (evalis (println inbetween) (quote (quote x)))
-
-println "test" x
-
-println "Again " (| x)
-
-println "why" (| x)
-
 def h (fexpr (t) t)
 def g (lambda (t) (+ t 1))
 
@@ -52,9 +43,9 @@ println ("before") (rel-lam (lambda (d) (d 1) ) x)
 
 println ("before") (body (lambda (u) u) )
 
-form (@ x &h) (quote h)
+form (# x &h) (quote h)
 
-println "Testing @" (@ x 1 2 3)
+println "Testing #" (# x 1 2 3)
 
 println "Another test" ((lambda (a &x) (println (quote a) a (quote x) x) ) 1 2 3)
 
@@ -63,19 +54,17 @@ println "NEWLINE"
 form (' `x) (x)
 form (! ~x) (x)
 
-println "What" (! x) (' x)
+println "Good" (! x) (' x)
 
 define factorial (lambda (n) (cond ((< n 1) 1) ((#t) (* n (factorial (- n 1)))) ) )
 
-println "What happened" (factorial 4)
+println "Good" (factorial 4)
 
 define fib (lambda (n) (cond ((< n 1) 1) (#t (+ (fib (- n 1)) (fib (- n 2)) ) ) ) )
 
-println "What happened" (fib 4)
+println "Good" (fib 4)
 
 if #t (println "Woooo") (println "Not wooo yet")
-
-define bubble-sort (lambda (&l) (1 ))
 
 println ((lambda (&l) l) 1 2)
 

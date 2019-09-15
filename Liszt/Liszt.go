@@ -53,6 +53,9 @@ func deparenth(list []string) ([][]string){
 		}
 		pos = pos + 1;
 	}
+	if len(ret) == 0{
+		return [][]string{[]string{}};
+	}
 	return ret
 }
 
@@ -189,6 +192,10 @@ func (env *Environment) update(name string, val []string) (){
 	env.environments[0][name] = val;
 }
 
+func (env *Environment) remove(name string) (){
+	delete(env.environments[0],name);
+}
+
 func (env *Environment) extend() (){
 	env.environments = append([]map[string][]string{make(map[string][]string)},env.environments...);
 	env.forms = append([]map[string][]string{make(map[string][]string)},env.forms...);
@@ -236,17 +243,17 @@ func main(){
 	env.update(">",[]string{"native","|",">","|","&l"});
 	env.update(">=",[]string{"native","|",">=","|","&l"});
 	env.update("<=",[]string{"native","|","<=","|","&l"});
-	env.update("print",[]string{"native","|","print","|","&l"});
-	env.update("println",[]string{"native","|","println","&l"});
+	//env.update("print",[]string{"native","|","print","|","&l"});
+	//env.update("println",[]string{"native","|","println","&l"});
 
-	 /*for{
+	 for{
 	 	scanner := bufio.NewScanner(os.Stdin);
-	 	fmt.Print("> ");
+	 	fmt.Print("Liszt> ");
 	 	scanner.Scan();
 	 	eval_expr(tokenize(scanner.Text()),env);
-	 }*/
+	 }
 
-	file,err := os.Open("teszt0");
+	/*file,err := os.Open("teszt0");
 	handle(err);
 
 	reader := bufio.NewReader(file);
@@ -266,7 +273,7 @@ func main(){
 				eval_expr(toks,env);
 			}
 		}
-	}
+	}*/
 }
 
 func free(code []string, env *Environment) ([]string){
@@ -490,6 +497,9 @@ func apply_form(fullcode [][]string, form []string, expr []string, env *Environm
 }
 
 //should evaluate the code
+//create loopx
+//create read/write
+//create import
 func eval_expr(code []string, env *Environment) ([]string){
 	if len(code) == 0{
 		return []string{};
@@ -544,11 +554,29 @@ func eval_expr(code []string, env *Environment) ([]string){
 
 		ret := eval_expr(args[1],env);
 
+		for key,_ := range toadd{
+			env.remove(key);
+		}
+
 		env.extend();
 		for key,val := range hold{
 			env.update(key,val);
 		}
 		return ret;
+	} else if oper == "at" || oper == "@"{
+		var pos int;
+		var err error;
+		var args [][]string = deparenth(code[1:]);
+		pos,err =	strconv.Atoi(eval_expr(args[0],env)[0]);
+		handle(err);
+		if pos < 0{
+			pos = len(args)+pos;
+		}
+		if pos < 0 || pos > len(args){
+			return []string{};
+		} else{
+			return args[pos];
+		}
 	} else if oper == "print"{
 			var toprint string = "";
 			var params [][]string = deparenth(code[1:]);
@@ -558,18 +586,18 @@ func eval_expr(code []string, env *Environment) ([]string){
 			fmt.Print(toprint+listCombinef(eval_expr(params[len(params)-1],env)));
 			return []string{""};
 	} else if oper == "println"{
+			var params [][]string = deparenth(code[1:]);
+			for _,param := range params{
+				fmt.Println(listCombinef(eval_expr(param,env)));
+			}
+			return []string{""};
+	} else if oper == "printall"{
 			var toprint string = "";
 			var params [][]string = deparenth(code[1:]);
 			for _,param := range params[:len(params)-1]{
 				toprint = toprint+listCombinef(eval_expr(param,env))+" ";
 			}
 			fmt.Println(toprint+listCombinef(eval_expr(params[len(params)-1],env)));
-			return []string{""};
-	} else if oper == "printall"{
-			var params [][]string = deparenth(code[1:]);
-			for _,param := range params{
-				fmt.Println(listCombinef(eval_expr(param,env)));
-			}
 			return []string{""};
 	} else if oper == "global"{
 		var toadd map[string][]string;
@@ -600,7 +628,7 @@ func eval_expr(code []string, env *Environment) ([]string){
 			}
 		}
 		return ret;
-	} else if oper == "q" || oper == "quote"{
+	} else if oper == "q" || oper == "quote" || oper == "list"{
 		return code[1:];
 	} else if oper == "parenth"{
 		return append([]string{"("},append(code[1:],")")...);
