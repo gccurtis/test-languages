@@ -114,6 +114,18 @@ func listSplit(list []string, match string) ([][]string){
 	return ret
 }
 
+func listEquals(list1 []string, list2 []string) (bool){
+	if(len(list1) != len(list2)){
+		return false;
+	}
+	for ind,val := range list1{
+		if val != list2[ind]{
+			return false;
+		}
+	}
+	return true;
+}
+
 //turns a string into a list of tokens
 func tokenize (text string) ([]string){
 
@@ -241,10 +253,10 @@ func main(){
 	env.update("eq?",[]string{"native","|","eq?","|","&l"});
 	env.update("<",[]string{"native","|","<","|","&l"});
 	env.update(">",[]string{"native","|",">","|","&l"});
-	env.update(">=",[]string{"native","|",">=","|","&l"});
-	env.update("<=",[]string{"native","|","<=","|","&l"});
-	//env.update("print",[]string{"native","|","print","|","&l"});
-	//env.update("println",[]string{"native","|","println","&l"});
+	// env.update(">=",[]string{"native","|",">=","|","&l"});
+	// env.update("<=",[]string{"native","|","<=","|","&l"});
+	// env.update("print",[]string{"native","|","print","|","&l"});
+	// env.update("println",[]string{"native","|","println","&l"});
 
 	 for{
 	 	scanner := bufio.NewScanner(os.Stdin);
@@ -345,11 +357,11 @@ func native_eval(oper string, params [][]string) ([]string){
 			}
 			return ret;
 	} else if oper == "eq?" || oper == "="{
-		var test string = params[0][0];
+		var test []string = params[0];
 		ret := true;
 		for _,param := range params[1:]{
-			ret = ret && (test == param[0]);
-			test = param[0];
+			ret = ret && listEquals(test,param);
+			test = param;
 		}
 		if ret{
 			return []string{"#t"};
@@ -493,11 +505,11 @@ func apply_form(fullcode [][]string, form []string, expr []string, env *Environm
 		codepos = codepos+1;
 	}
 	var ret []string = eval_expr(expr,env);
+	env.contract();
 	return ret
 }
 
 //should evaluate the code
-//create loopx
 //create read/write
 //create import
 func eval_expr(code []string, env *Environment) ([]string){
@@ -569,13 +581,31 @@ func eval_expr(code []string, env *Environment) ([]string){
 		var args [][]string = deparenth(code[1:]);
 		pos,err =	strconv.Atoi(eval_expr(args[0],env)[0]);
 		handle(err);
+		var li [][]string = deparenth(eval_expr(args[1],env));
 		if pos < 0{
-			pos = len(args)+pos;
+			pos = len(li)+pos;
 		}
-		if pos < 0 || pos > len(args){
+		if pos < 0 || pos > len(li){
 			return []string{};
 		} else{
-			return args[pos];
+			return li[pos];
+		}
+	} else if oper == "split" || oper == "$"{
+		var pos int;
+		var err error;
+		var args [][]string = deparenth(code[1:]);
+		pos,err =	strconv.Atoi(eval_expr(args[0],env)[0]);
+		handle(err);
+		var li [][]string = deparenth(eval_expr(args[1],env));
+		if pos < 0{
+			pos = len(li)+pos;
+		}
+		if pos < 0 || pos > len(li){
+			return []string{};
+		} else{
+			var p1 []string = append([]string{"("},append(superlistCombine(li[:pos]),[]string{")"}...)...);
+			var p2 []string = append([]string{"("},append(superlistCombine(li[pos:]),[]string{")"}...)...);
+			return append(p1,p2...);
 		}
 	} else if oper == "print"{
 			var toprint string = "";
@@ -698,7 +728,8 @@ func eval_expr(code []string, env *Environment) ([]string){
 		}
 		return ret;
 	} else if oper == "len" || oper == "length"{
-		return []string{strconv.Itoa(len(code)-1)};
+		var tl [][]string = deparenth(eval_expr(code[1:],env));
+		return []string{strconv.Itoa(len(tl))};
 	} else if oper == "exit"{
 			exit_code,err := strconv.Atoi(code[1]);
 			handle(err);
