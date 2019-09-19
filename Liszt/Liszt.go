@@ -8,6 +8,11 @@ import(
 	"bufio"
 )
 
+//implement types, {TypeName: string, TypeValue: {}interface, StringForm: string}
+//Change type value so that types are just classes, implement types
+
+//Seperate env if possible as demonstrated in SICP
+
 func abs(num int) (int){
 	if num > 0{
 		return num;
@@ -241,6 +246,8 @@ func (env *Environment) set_forms(form string, expr []string) (){
 }
 
 //This is how you start the REPL or read a file
+//Should have 3 options: REPL, eval line of code, eval a file
+//lines end with ; comments start with // or /* comment */
 func main(){
 	var env *Environment = newEnvironment();
 	env.update("+",[]string{"native","|","+","|","&l"});
@@ -258,34 +265,36 @@ func main(){
 	// env.update("print",[]string{"native","|","print","|","&l"});
 	// env.update("println",[]string{"native","|","println","&l"});
 
-	 for{
-	 	scanner := bufio.NewScanner(os.Stdin);
-	 	fmt.Print("Liszt> ");
-	 	scanner.Scan();
-	 	eval_expr(tokenize(scanner.Text()),env);
-	 }
+	cmdArgs := os.Args[1:];
 
-	/*file,err := os.Open("teszt0");
-	handle(err);
-
-	reader := bufio.NewReader(file);
-	for true{
-		inp,_,err := reader.ReadLine();
-		strinp := string(inp);
+	if len(cmdArgs) == 0{
+		for{
+		 scanner := bufio.NewScanner(os.Stdin);
+		 fmt.Print("Liszt> ");
+		 scanner.Scan();
+		 eval_expr(tokenize(scanner.Text()),env);
+		}
+	} else if len(cmdArgs) == 2 && cmdArgs[0] == "-f"{
+		file,err := os.Open(cmdArgs[1]);
 		handle(err);
-		if strinp == "exit"{
-			os.Exit(0);
-		}else{
+
+		reader := bufio.NewReader(file);
+		var lineNumber int = 0;
+		for{
+			inp,_,err := reader.ReadLine();
+			handle(err);
+			strinp := string(inp);
+			fmt.Println(lineNumber);
+			fmt.Println(strinp);
 			toks := tokenize(strinp);
 			if len(toks) != 0 && toks[0] != ";"{
-				//fmt.Print("COPY: ");
-				//fmt.Println(toks);
-				//fmt.Print("ENV: ");
-				//fmt.Println(env);
 				eval_expr(toks,env);
 			}
+			lineNumber++;
 		}
-	}*/
+	} else{
+		fmt.Println("Improper use of Liszt, use Liszt -f <filename> to interprete a file or Liszt to access REPL");
+	}
 }
 
 func free(code []string, env *Environment) ([]string){
@@ -511,7 +520,7 @@ func apply_form(fullcode [][]string, form []string, expr []string, env *Environm
 
 //should evaluate the code
 //create read/write
-//create import
+//create import, evals another file first
 func eval_expr(code []string, env *Environment) ([]string){
 	if len(code) == 0{
 		return []string{};
@@ -541,20 +550,24 @@ func eval_expr(code []string, env *Environment) ([]string){
 		args := deparenth(code[1:]);
 		tobind_vars := deparenth(args[0]);
 		void_env := newEnvironment();
-		for _,tobind := range tobind_vars{
-			tmp := deparenth(tobind);
-			void_env.update(tmp[0][0],eval_expr(tmp[1],env));
+		if len(tobind_vars) == 0{
+			for _,tobind := range tobind_vars{
+				tmp := deparenth(tobind);
+				void_env.update(tmp[0][0],eval_expr(tmp[1],env));
+			}	
 		}
 		return eval_expr(args[1],void_env);
 	} else if oper == "evalx"{
 		return eval_expr(eval_expr(code[1:],env),env)
 	} else if oper == "escape"{
 		var toadd map[string][]string;
-		args := deparenth(code[1:]);
+		var args [][]string = deparenth(code[1:]);
 		tobind_vars := deparenth(args[0]);
-		for _,tobind := range tobind_vars{
-			tmp := deparenth(tobind);
-			toadd[tmp[0][0]] = eval_expr(tmp[1],env);
+		if len(tobind_vars[0]) != 0{
+			for _,tobind := range tobind_vars{
+				tmp := deparenth(tobind);
+				toadd[tmp[0][0]] = eval_expr(tmp[1],env);
+			}
 		}
 
 		hold := env.environments[0];

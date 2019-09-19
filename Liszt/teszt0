@@ -6,6 +6,8 @@ def append (lambda (x y) (pass (rel x) y))
 
 def cons append
 
+form (loopx ~l `i `expr) (evalis (def pos 0) (loop (len l) (evalis (def i (@ pos l)) (evalx expr) (def pos (+ pos 1))) ) )
+
 def a (+ 1 2)
 
 def x (quote a)
